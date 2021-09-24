@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Icon, Layout, List, ListItem, Spinner} from '@ui-kitten/components';
+import {Avatar, Button, Icon, Layout, List, ListItem, Spinner} from '@ui-kitten/components';
 import {StyleSheet, View} from 'react-native';
 import {firebase} from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
-function FindFriendsScreen() {
+function FindFriendsScreen(props) {
 
     let currentUser = firebase.auth().currentUser;
 
@@ -13,30 +13,15 @@ function FindFriendsScreen() {
 
     const usersCollection = firestore().collection('users');
 
-    // const fetchData = async () => {
-    //
-    //     try {
-    //
-    //         var allUsers = await usersCollection.get();
-    //
-    //         allUsers.docs.map(async e => {
-    //
-    //             let usersData = await usersCollection.where('id', '==', currentUser.uid).where('following', 'array-contains', e.data()['id'])
-    //                 .get();
-    //
-    //             if (usersData.empty === true) {
-    //                 console.log(e.data());
-    //                 setUsers(e.data());
-    //             }
-    //
-    //         });
-    //
-    //
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    //
-    // };
+    const {navigation} = props;
+
+    navigation.addListener('focus', () => {
+        setUsers();
+        setLoading(true);
+        fetchData().then((e) => {
+            setLoading(false);
+        });
+    });
 
 
     const fetchData = async () => {
@@ -47,21 +32,27 @@ function FindFriendsScreen() {
             const allUsers = await usersCollection.get();
 
             const promises = allUsers.docs.map(async e => {
-                let usersData = await usersCollection.where('id', '==', currentUser.uid).
-                where('following', 'array-contains', e.data().id)
+                let usersData = await usersCollection.where('id', '==', currentUser.uid)
+                    .where('following', 'array-contains', e.data().id)
                     .get();
 
-                if (usersData.empty === true) {
+                if (usersData.empty) {
                     return e.data();
                 }
 
             });
 
+            let allData = await Promise.all(promises);
 
-            const numFruits = await Promise.all(promises);
-            setUsers(numFruits);
-            console.log(numFruits);
+            allData = allData.filter(function (element) {
+                return element !== undefined;
+            });
 
+            allData = allData.filter(function (element) {
+                return element.id !== currentUser.uid;
+            });
+
+            setUsers(allData);
 
         } catch (err) {
             console.error(err);
@@ -88,47 +79,49 @@ function FindFriendsScreen() {
     }
 
 
-    const renderItemAccessory = (props) => (
-        <Button size="tiny">FOLLOW</Button>
-    );
+    async function followUser(id) {
 
-    const renderItemIcon = (props) => (
-        <Icon {...props} name="person"/>
-    );
-
-    const data = new Array(8).fill({
-        title: 'Item',
-        description: 'Description for Item',
-    });
-
-    // const renderItem = ({item, index}) => (
-    //     <ListItem
-    //         title={index}
-    //         description={'asdasd'}
-    //         accessoryLeft={renderItemIcon}
-    //         accessoryRight={renderItemAccessory}
-    //     />
-    // );
-
-    console.log(users);
-
-    if(users !== undefined){
-        return (
-            <List
-                style={styles.container}
-                data={users}
-                // renderItem={renderItem}
-                renderItem={({item,index}) => (
-                    <ListItem
-                        title={index}
-                        description={ 'qq'}
-                        accessoryLeft={renderItemIcon}
-                        accessoryRight={renderItemAccessory}
-                    />
-                )}
-            />
-        );
+        let myData = await usersCollection.where('id', '==', currentUser.uid).get();
+        await usersCollection.doc(myData.docs[0].id).update({
+            following: firebase.firestore.FieldValue.arrayUnion(id),
+        });
     }
+
+
+    return (
+        <List
+            style={styles.container}
+            data={users}
+            renderItem={({item, index}) => {
+                return (
+                    <ListItem
+                        title={item.full_name}
+                        description={item.email}
+                        accessoryLeft={() => {
+                            return (
+                                <Avatar
+                                    {...props}
+                                    style={[props.style, {tintColor: null}]}
+                                    source={{uri: item.profile_image}}
+                                />
+                            );
+                        }}
+                        accessoryRight={() => {
+                            return (
+                                <Button onPress={async () => {
+                                    await followUser(item.id);
+                                    let filter = users.filter(function (element) {
+                                        return element.id !== item.id;
+                                    });
+                                    setUsers(filter);
+                                }} size="tiny">FOLLOW</Button>
+                            );
+                        }}
+                    />
+                );
+            }}
+        />
+    );
 
 
 }
