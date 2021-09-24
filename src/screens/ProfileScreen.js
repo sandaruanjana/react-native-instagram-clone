@@ -115,6 +115,29 @@ function ProfileScreen() {
             </View>
 
             <TouchableOpacity onPress={() => {
+                console.log('Edit Profile');
+            }}>
+                <View style={{marginTop: 10, marginBottom: 20}}>
+                    <View
+                        style={{
+                            height: 30,
+                            borderRadius: 5,
+                            marginStart: 10,
+                            marginEnd: 10,
+                            backgroundColor: '#FFFFFF',
+                            justifyContent: 'center',
+                            borderColor: '#262626',
+                            borderWidth: 0.7,
+                        }}>
+                        <View style={{alignItems: 'center'}}>
+                            <Text style={{color: 'black', fontWeight: 'bold'}}>Edit Profile</Text>
+                        </View>
+                    </View>
+                </View>
+            </TouchableOpacity>
+
+
+            <TouchableOpacity onPress={() => {
                 auth()
                     .signOut()
                     .then(() => console.log('User signed out!'));
@@ -132,7 +155,7 @@ function ProfileScreen() {
                             borderWidth: 0.7,
                         }}>
                         <View style={{alignItems: 'center'}}>
-                            <Text style={{color: 'black', fontWeight: 'bold'}}>Edit Profile</Text>
+                            <Text style={{color: 'black', fontWeight: 'bold'}}>Logout</Text>
                         </View>
                     </View>
                 </View>

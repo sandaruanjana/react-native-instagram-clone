@@ -47,7 +47,8 @@ function FindFriendsScreen() {
             const allUsers = await usersCollection.get();
 
             const promises = allUsers.docs.map(async e => {
-                let usersData = await usersCollection.where('id', '==', currentUser.uid).where('following', 'array-contains', e.data().id)
+                let usersData = await usersCollection.where('id', '==', currentUser.uid).
+                where('following', 'array-contains', e.data().id)
                     .get();
 
                 if (usersData.empty === true) {
