@@ -13,13 +13,13 @@ React Native, UI Kitten, Firebase
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone https://github.com/sandaruanjana/react-native-instagram-clone
 ```
 
 Go to the project directory
 
 ```bash
-  cd my-project
+  cd react-native-instagram-clone
 ```
 
 Install dependencies
